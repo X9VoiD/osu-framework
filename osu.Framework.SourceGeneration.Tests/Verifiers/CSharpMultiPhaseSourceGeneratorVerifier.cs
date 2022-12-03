@@ -30,6 +30,12 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
 
             new Test(commonSources, commonGenerated, multiPhaseSources, multiPhaseGenerated).Verify();
 
+            // The filenames for the sources and generated files are expected to be in the format of:
+            //     <filename>.<phase>.cs
+            // where <phase> is a zero-based counter and represents a time frame of code states.
+            //
+            // If one of the filenames does not match above format, it is assumed that all the files
+            // are in the same phase, 0.
             static void extractPhases(
                 (string filename, string content)[] sources,
                 List<List<(string filename, string content)>> multiPhaseList,
@@ -38,6 +44,7 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
                 foreach (var s in sources)
                 {
                     var match = multi_phase.Match(s.filename);
+                    // Is multi-phase
                     if (match.Success)
                     {
                         int phase = int.Parse(match.Groups["num"].Value);
@@ -48,6 +55,7 @@ namespace osu.Framework.SourceGeneration.Tests.Verifiers
                         string filename = match.Groups["filename"].Value + ".cs";
                         multiPhaseList[phase].Add((filename, s.content));
                     }
+                    // Not multi-phase, at this point all the files should be single-phase
                     else
                     {
                         if (multiPhaseList.Count == 0)
